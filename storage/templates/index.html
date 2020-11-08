@@ -1,0 +1,95 @@
+
+<!doctype html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+          integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+
+    <title>Upload your robot's map</title>
+</head>
+<body>
+<div class="container">
+    <div class="row">
+        <div class="col-md-8">
+            <h1 class="my-3">1. Log in</h1>
+            <form id="login_form">
+                <div class="form-group">
+                    <label for="id_email">Email address</label>
+                    <input type="email" class="form-control" id="id_email" aria-describedby="emailHelp"
+                           placeholder="Enter email"/>
+                </div>
+                <div class="form-group">
+                    <label for="id_password">Password</label>
+                    <input type="password" class="form-control" id="id_password" placeholder="Password"/>
+                </div>
+                <button type="submit" class="btn btn-primary">Log in</button>
+            </form>
+
+            <h1 class="my-3">2. Upload a map</h1>
+            <form id="map_form">
+                <div class="form-group">
+                    <label for="id_map">Choose an image for your map (image must be in PNG or PGM)</label>
+                    <input type="file" class="form-control-file" id="id_map"/>
+                </div>
+                <button type="submit" class="btn btn-primary">Upload</button>
+            </form>
+
+        </div>
+    </div>
+</div>
+<script>
+let userToken;
+
+document.getElementById('login_form').addEventListener('submit', function(event) {
+    event.preventDefault();
+    let email = document.getElementById('id_email').value;
+    let password = document.getElementById('id_password').value;
+
+    fetch('http://127.0.0.1:8000/api/auth-token/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            "username": email,
+            "password": password,
+        })
+    }).then( response => {
+        return response.json();
+    }).then(data => {
+        console.log(data);
+        userToken = data.token;
+        console.log('Logged in. Got the token.');
+    }).catch((error) => {
+        console.error('Error:', error);
+    });
+});
+
+document.getElementById('map_form').addEventListener('submit', function(event) {
+    event.preventDefault();
+    let input = document.getElementById('id_map');
+
+    let data = new FormData();
+    data.append('Map', input.files[0]);
+
+    fetch('http://127.0.0.1:8000/api/user-map/', {
+        method: 'POST',
+        headers: {
+            'Authorization': `Token ${userToken}`
+        },
+        body: data
+    }).then(response => {
+        return response.json();
+    }).then(data => {
+        console.log(data);
+    }).catch((error) => {
+        console.error('Error:', error);
+    });
+});    
+</script>
+</body>
+</html>
